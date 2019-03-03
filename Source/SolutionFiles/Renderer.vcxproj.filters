@@ -35,6 +35,9 @@
     <ClCompile Include="..\Renderer\Source\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Renderer\Source\RendererD3D12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)Source\Renderer\D3DManager.h">

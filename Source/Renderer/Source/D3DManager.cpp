@@ -25,10 +25,13 @@
 
 D3DManager::D3DManager()
 {
+	m_wndHeight = m_wndWidth	= 0;
 	m_swapChain					= nullptr;
 	m_device					= nullptr;
+
+#if defined(D3D11)
 	m_deviceContext				= nullptr;
-	m_wndHeight = m_wndWidth	= 0;
+#endif
 }
 
 D3DManager::~D3DManager(){}
@@ -172,11 +175,13 @@ void D3DManager::Shutdown()
 		m_swapChain->SetFullscreenState(false, NULL);
 	}
 
+#if defined(D3D11)
 	if (m_deviceContext)
 	{
 		m_deviceContext->Release();
 		m_deviceContext = nullptr;
 	}
+#endif
 
 	if (m_device)
 	{
@@ -190,11 +195,14 @@ void D3DManager::Shutdown()
 		m_swapChain = nullptr;
 	}
 #if _DEBUG
+
+#if defined(D3D11)
 	if (m_annotation)
 	{
 		m_annotation->Release();
 		m_annotation = nullptr;
 	}
+#endif
 	
 	if (m_debug)
 	{
@@ -223,15 +231,22 @@ void D3DManager::ReportLiveObjects(const std::string& LogHeader /*= ""*/) const
 #ifdef _DEBUG
 	if (!LogHeader.empty())
 		Log::Info(LogHeader);
-
+#if defined(D3D11)
 	HRESULT hr = m_device->QueryInterface(__uuidof(ID3D11Debug), (void**)&m_debug);
 	hr = m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+#elif defined(D3D12)
+	HRESULT hr = m_device->QueryInterface(__uuidof(ID3D12Debug), (void**)&m_debug);
+	// hr = m_debug->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL); // TODO:
+	assert(false);
+#else
+	// Other APIs
+#endif
 #endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------
-// private functions
 
+#if defined(D3D11)
 bool D3DManager::InitSwapChain(HWND hwnd, bool fullscreen, int scrWidth, int scrHeight, unsigned numerator, unsigned denominator, DXGI_FORMAT FrameBufferFormat)
 {
 	HRESULT result;
@@ -285,7 +300,6 @@ bool D3DManager::InitSwapChain(HWND hwnd, bool fullscreen, int scrWidth, int scr
 
 #if defined( _DEBUG )
 	UINT flags = D3D11_CREATE_DEVICE_DEBUG;
-
 #else
 	UINT flags = 0;
 #endif
@@ -311,7 +325,8 @@ bool D3DManager::InitSwapChain(HWND hwnd, bool fullscreen, int scrWidth, int scr
 		nullptr,
 		&m_swapChain
 	);
-#endif
+#endif // HIGHER_FEATURE_LEVEL
+
 
 	if (FAILED(result))
 	{
@@ -322,6 +337,7 @@ bool D3DManager::InitSwapChain(HWND hwnd, bool fullscreen, int scrWidth, int scr
 #ifdef _DEBUG
 	// Direct3D SDK Debug Layer
 	//------------------------------------------------------------------------------------------
+#if defined(D3D11)
 	// src1: https://blogs.msdn.microsoft.com/chuckw/2012/11/30/direct3d-sdk-debug-layer-tricks/
 	// src2: http://seanmiddleditch.com/direct3d-11-debug-api-tricks/
 	//------------------------------------------------------------------------------------------
@@ -352,7 +368,25 @@ bool D3DManager::InitSwapChain(HWND hwnd, bool fullscreen, int scrWidth, int scr
 		Log::Error("Can't Query(ID3DUserDefinedAnnotation)");
 		return false;
 	}
+#elif defined(D3D12)
+	// TODO: d3d12 debug interface
+#endif // API_DEFINE
+
 #endif
 
 	return true;
 }
+#elif defined(D3D12)
+bool D3DManager::InitSwapChain(HWND hwnd, bool fullscreen, int scrWidth, int scrHeight, unsigned numerator, unsigned denominator, DXGI_FORMAT FrameBufferFormat)
+{
+	// create device
+
+	// create swapchain
+
+	// create debug layer
+
+	return true;
+}
+#else // API
+// other APIs
+#endif // API

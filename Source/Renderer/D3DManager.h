@@ -18,7 +18,21 @@
 
 #pragma once
 
+#if defined(D3D11)
 #include <d3d11_1.h>
+#elif defined(D3D12)
+// https://www.3dgep.com/learning-directx12-1/
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <d3dcompiler.h>
+#include <DirectXMath.h>
+
+// D3D12 extension library.
+//#include <d3dx12.h>
+#else
+#error "Graphics API not defined."
+#endif
+
 #include <string>
 
 // auto convert for enum classes: https://stackoverflow.com/questions/8357240/how-to-automatically-convert-strongly-typed-enum-into-int/8357462#8357462
@@ -58,23 +72,41 @@ private:
 	int							m_VRAM;
 	char						m_GPUDescription[128];
 	HWND						m_hwnd;
+	unsigned					m_wndWidth, m_wndHeight;
 
-
+#if defined(D3D11)
 #ifndef HIGHER_FEATURE_LEVEL
 	IDXGISwapChain*			m_swapChain;
 #else
 	IDXGISwapChain1*			m_swapChain;
-#endif
+#endif // HIGHER_FEATURE_LEVEL
 	
 	ID3D11Device*				m_device;			// shared ptr
 	ID3D11DeviceContext*		m_deviceContext;
 	
-	unsigned					m_wndWidth, m_wndHeight;
 
 
 #if _DEBUG
 	ID3D11Debug*				m_debug;
 	ID3DUserDefinedAnnotation*	m_annotation;
 #endif
+
+
+#elif defined(D3D12)
+	short m_numFrames = 3;
+	IDXGISwapChain4*			m_swapChain;
+	ID3D12Device*				m_device;
+	//ID3D12DeviceContext*		m_deviceContext;
+
+#if _DEBUG
+	ID3D12Debug*				m_debug;
+	// ID3DUserDefinedAnnotation*	m_annotation; // TODO:
+#endif
+
+
+#else
+	// Other APIs
+
+#endif // API_DEFINE
 };
 

@@ -22,10 +22,10 @@
 #include "Shader.h"
 #include "RenderingStructs.h"
 
-#include "Engine/Settings.h"
-
 #include "Utilities/Color.h"
 #include "Utilities/utils.h"
+
+#include "Engine/Settings.h"
 #include "Engine/DataStructures.h"
 //#include "WorkerPool.h"
 
@@ -39,6 +39,10 @@ class BufferObject;
 class Camera;
 class D3DManager;
 namespace DirectX  { class ScratchImage; }
+
+#if defined(D3D12)
+struct ID3D12Device;
+#endif
 
 class Renderer
 {
@@ -207,8 +211,15 @@ public:
 	//----------------------------------------------------------------------------------------------------------------
 	// DATA
 	//----------------------------------------------------------------------------------------------------------------
+#if defined(D3D11)
 	ID3D11Device*					m_device;
 	ID3D11DeviceContext*			m_deviceContext;
+#elif defined(D3D12)
+	ID3D12Device*					m_device;
+	// ID3D12DeviceContext*			m_deviceContext;	// TODO:
+#else
+	// Other APIs
+#endif
 	D3DManager*						m_Direct3D;
 
 	//std
